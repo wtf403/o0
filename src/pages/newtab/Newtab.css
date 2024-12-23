@@ -1,38 +1,115 @@
 .App {
-  text-align: center;
+  padding: 2rem;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.controls select {
+  padding: 0.5rem;
+  border-radius: 4px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.reading-list {
+  width: 100%;
+}
+
+.reading-list.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.reading-list.list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 1rem;
 }
 
-.App-link {
-  color: #61dafb;
+.reading-list-item {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.reading-list-item:hover {
+  transform: translateY(-2px);
+}
+
+.item-content {
+  display: flex;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.list .item-content {
+  flex-direction: row;
+  padding: 1rem;
+}
+
+.grid .item-content {
+  flex-direction: column;
+}
+
+.preview-image {
+  flex-shrink: 0;
+}
+
+.grid .preview-image {
+  width: 100%;
+  height: 160px;
+  background: #f5f5f5;
+}
+
+.list .preview-image {
+  width: 120px;
+  height: 120px;
+  margin-right: 1rem;
+}
+
+.preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.item-details {
+  padding: 1rem;
+  flex-grow: 1;
+}
+
+.item-details h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.site-name {
+  display: block;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-text {
+  color: #444;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.date-info {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: auto;
 }

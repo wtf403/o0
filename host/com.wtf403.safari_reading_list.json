@@ -1,0 +1,7 @@
+{
+  "name": "com.wtf403.safari_reading_list",
+  "description": "Safari Reading List Native Messaging Host",
+  "path": "/Users/wtf403/.local/bin/safari-reading-list",
+  "type": "stdio",
+  "allowed_origins": ["chrome-extension://kikddejadjpomdjnialdcccmkoeemdbn/"]
+}

@@ -1,0 +1,23 @@
+:root {
+  --bg-primary: #ffffff;
+  --text-primary: #000000;
+  --card-bg: #ffffff;
+  --card-border: #eaeaea;
+}
+
+:root.dark {
+  --bg-primary: #1a1a1a;
+  --text-primary: #ffffff;
+  --card-bg: #2d2d2d;
+  --card-border: #404040;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.reading-list-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+} 
