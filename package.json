@@ -1,0 +1,23 @@
+{
+  "name": "browser-launcher",
+  "version": "1.0.0",
+  "description": "MacOS browser launcher with floating URL bar",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "Max Kiselev",
+  "license": "MIT",
+  "build": {
+    "appId": "com.browser.launcher",
+    "mac": {
+      "category": "public.app-category.utilities"
+    }
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}
