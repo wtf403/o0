@@ -6,10 +6,13 @@ const {
   screen,
 } = require("electron");
 const { exec } = require("child_process");
+const WindowTracker = require("bindings")("window_tracker").WindowTracker;
+const windowTracker = new WindowTracker();
 
 let urlBarWindow = null;
 let chromeProcess = null;
 let isOurWindow = false;
+let trackingInterval = null;
 
 function createUrlBar() {
   urlBarWindow = new BrowserWindow({
@@ -18,8 +21,7 @@ function createUrlBar() {
     frame: false,
     transparent: true,
     alwaysOnTop: true,
-    show: true,
-    center: true,
+    show: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -28,13 +30,11 @@ function createUrlBar() {
     hasShadow: true,
     roundedCorners: false,
     movable: false,
+    focusable: false,
+    skipTaskbar: true,
   });
 
   urlBarWindow.loadFile("urlbar.html");
-
-  urlBarWindow.on("blur", () => {
-    urlBarWindow.hide();
-  });
 }
 
 function changeUrl(url) {
@@ -84,8 +84,48 @@ function openHomepage() {
   });
 }
 
+async function getActiveChromeWindow() {
+  const bounds = windowTracker.getChromeWindowBounds();
+  return bounds || null;
+}
+
+async function updateUrlBarPosition(urlBarWindow) {
+  const chromeWindow = await getActiveChromeWindow();
+
+  if (chromeWindow) {
+    const centerX = Math.round(
+      chromeWindow.x + chromeWindow.width / 2 - urlBarWindow.getSize()[0] / 2
+    );
+    const centerY = Math.round(
+      chromeWindow.y + chromeWindow.height / 2 - urlBarWindow.getSize()[1] / 2
+    );
+
+    urlBarWindow.setPosition(centerX, centerY);
+    if (!urlBarWindow.isVisible()) {
+      urlBarWindow.show();
+    }
+
+    urlBarWindow.setAlwaysOnTop(true, "floating", 1);
+  } else if (urlBarWindow.isVisible()) {
+    urlBarWindow.hide();
+  }
+}
+
+function startWindowTracking() {
+  if (trackingInterval) {
+    clearInterval(trackingInterval);
+  }
+
+  trackingInterval = setInterval(() => {
+    if (urlBarWindow) {
+      updateUrlBarPosition(urlBarWindow);
+    }
+  }, 16);
+}
+
 app.whenReady().then(() => {
   openHomepage();
+  startWindowTracking();
 
   globalShortcut.register("CommandOrControl+P", () => {
     if (urlBarWindow.isVisible()) {
@@ -127,5 +167,8 @@ app.on("window-all-closed", () => {
 });
 
 app.on("will-quit", () => {
+  if (trackingInterval) {
+    clearInterval(trackingInterval);
+  }
   globalShortcut.unregisterAll();
 });
