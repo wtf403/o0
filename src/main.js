@@ -5,14 +5,25 @@ const {
   ipcMain,
   screen,
 } = require("electron");
-const { exec } = require("child_process");
+const { exec, spawn } = require("child_process");
+const path = require("path");
 const WindowTracker = require("bindings")("window_tracker").WindowTracker;
 const windowTracker = new WindowTracker();
+
+// Set the app to be an agent app (UI Element)
+app.dock.hide();
 
 let urlBarWindow = null;
 let chromeProcess = null;
 let isOurWindow = false;
 let trackingInterval = null;
+let currentPosition = { x: 0, y: 0 };
+let targetPosition = { x: 0, y: 0 };
+const SMOOTHING_FACTOR = 0.3; // Adjust this value between 0 and 1 (higher = faster)
+
+function lerp(start, end, factor) {
+  return start + (end - start) * factor;
+}
 
 function createUrlBar() {
   urlBarWindow = new BrowserWindow({
@@ -30,28 +41,43 @@ function createUrlBar() {
     hasShadow: true,
     roundedCorners: false,
     movable: false,
-    focusable: false,
+    focusable: true,
     skipTaskbar: true,
   });
 
   urlBarWindow.loadFile("urlbar.html");
+
+  // Initialize position
+  const bounds = urlBarWindow.getBounds();
+  currentPosition = { x: bounds.x, y: bounds.y };
+  targetPosition = { x: bounds.x, y: bounds.y };
 }
 
-function changeUrl(url) {
-  return `osascript -e 'tell application "Google Chrome" to set URL of active tab of front window to "${url}"'`;
-}
+function launchChromeWindow(url = "https://google.com") {
+  const chrome = spawn(
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    [
+      `--app=${url}`,
+      "--user-data-dir=" + path.join(app.getPath("userData"), "chrome-profile"),
+      "--no-first-run",
+      "--silent-launch",
+    ],
+    {
+      env: {
+        ...process.env,
+        CHROME_BUNDLE_ID: "com.wtf403.o0",
+        LSUIElement: "1",
+      },
+      stdio: "pipe",
+    }
+  );
 
-function openWindow(url) {
-  return `/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --app=${url}`;
+  return chrome;
 }
 
 function openInChrome(url) {
   if (!isOurWindow) {
-    chromeProcess = exec(openWindow(url), (error) => {
-      if (error) {
-        console.error("Error opening Chrome:", error);
-      }
-    });
+    chromeProcess = launchChromeWindow(url);
 
     chromeProcess.on("exit", () => {
       chromeProcess = null;
@@ -60,28 +86,22 @@ function openInChrome(url) {
 
     isOurWindow = true;
   } else {
-    exec(changeUrl(url));
+    // For existing window, use AppleScript to change URL
+    const script = `osascript -e 'tell application "Google Chrome" to set URL of active tab of front window to "${url}"'`;
+    exec(script);
   }
 }
 
 function openHomepage() {
-  const command = `${openWindow(
-    "https://google.com"
-  )} && sleep 0.1 && ${changeUrl("chrome://newtab")}`;
-
-  chromeProcess = exec(command, (error) => {
-    if (error) {
-      console.error("Error opening Chrome:", error);
-    } else {
-      isOurWindow = true;
-      createUrlBar();
-    }
-  });
+  chromeProcess = launchChromeWindow();
 
   chromeProcess.on("exit", () => {
     chromeProcess = null;
     isOurWindow = false;
   });
+
+  isOurWindow = true;
+  createUrlBar();
 }
 
 async function getActiveChromeWindow() {
@@ -93,14 +113,41 @@ async function updateUrlBarPosition(urlBarWindow) {
   const chromeWindow = await getActiveChromeWindow();
 
   if (chromeWindow) {
-    const centerX = Math.round(
-      chromeWindow.x + chromeWindow.width / 2 - urlBarWindow.getSize()[0] / 2
+    // Calculate target position
+    targetPosition = {
+      x: Math.round(
+        chromeWindow.x + chromeWindow.width / 2 - urlBarWindow.getSize()[0] / 2
+      ),
+      y: Math.round(
+        chromeWindow.y + chromeWindow.height / 2 - urlBarWindow.getSize()[1] / 2
+      ),
+    };
+
+    // Smoothly interpolate to target position
+    currentPosition.x = lerp(
+      currentPosition.x,
+      targetPosition.x,
+      SMOOTHING_FACTOR
     );
-    const centerY = Math.round(
-      chromeWindow.y + chromeWindow.height / 2 - urlBarWindow.getSize()[1] / 2
+    currentPosition.y = lerp(
+      currentPosition.y,
+      targetPosition.y,
+      SMOOTHING_FACTOR
     );
 
-    urlBarWindow.setPosition(centerX, centerY);
+    // Round positions to avoid subpixel rendering
+    const roundedX = Math.round(currentPosition.x);
+    const roundedY = Math.round(currentPosition.y);
+
+    // Only update position if it has changed significantly
+    const currentBounds = urlBarWindow.getBounds();
+    if (
+      Math.abs(currentBounds.x - roundedX) > 0.5 ||
+      Math.abs(currentBounds.y - roundedY) > 0.5
+    ) {
+      urlBarWindow.setPosition(roundedX, roundedY);
+    }
+
     if (!urlBarWindow.isVisible()) {
       urlBarWindow.show();
     }
@@ -116,11 +163,12 @@ function startWindowTracking() {
     clearInterval(trackingInterval);
   }
 
+  // Use requestAnimationFrame-like timing (about 60fps)
   trackingInterval = setInterval(() => {
     if (urlBarWindow) {
       updateUrlBarPosition(urlBarWindow);
     }
-  }, 16);
+  }, 16.667); // ~60fps
 }
 
 app.whenReady().then(() => {
