@@ -1,1 +1,0 @@
-cmd_Release/window_tracker.node := c++ -bundle -undefined dynamic_lookup -Wl,-search_paths_first -mmacosx-version-min=10.15 -arch arm64 -L./Release -stdlib=libc++ -L/opt/homebrew/opt/mysql-client/lib -o Release/window_tracker.node Release/obj.target/window_tracker/window_tracker.o Release/nothing.a -framework Cocoa
