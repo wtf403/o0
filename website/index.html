@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>o0</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <audio id="oouSound" src="assets/oou.mp3"></audio>
+    <audio id="saveSound" src="assets/save.mp3"></audio>
+    <div id="lightboxes"></div>
+
+    <main class="main">
+      <div class="tabs-bg"></div>
+
+      <svg 
+        class="noise-bg"
+        viewBox="0 0 400 200"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <filter id="noiseFilter">
+          <feTurbulence 
+            type="fractalNoise"
+            baseFrequency="2.5"
+            numOctaves="5"
+            stitchTiles="stitch"
+          >
+            <animate 
+              attributeName="seed" 
+              from="0"
+              to="100"
+              dur="12s"
+              repeatCount="indefinite"
+            />
+          </feTurbulence>
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+      </svg>
+
+      <!-- <div class="preview-bg"></div> -->
+
+      <section class="logo-section">
+        <picture class="logo">
+          <source
+            class="logo-img"
+            srcset="/assets/light.png"
+            media="(prefers-color-scheme: dark)"
+          />
+          <img
+            class="logo-img"
+            src="/assets/dark.png"
+            alt="o0 logo"
+          />
+        </picture>
+        <a href="https://github.com/wtf403/o0/releases/download/test/README.md" class="download" download> download</a>
+      </section>
+    </main>
+    <script type="module" src="index.js"></script>
+  </body>
+</html>
