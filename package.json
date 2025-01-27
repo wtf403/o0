@@ -7,11 +7,7 @@
     "start": "electron src",
     "build": "electron-builder src",
     "rebuild": "electron-rebuild src",
-    "website": "concurrently \"npm run website:watch\" \"npm run website:serve\"",
-    "website:serve": "live-server website",
-    "website:watch": "nodemon --watch website --ext ejs --exec \"npm run website:build\"",
-    "website:build": "cd website && ejs-cli index.ejs > index.html",
-    "test": "cd test && live-server --open=index.html"
+    "website": "cd website && live-server"
   },
   "keywords": [],
   "author": "wtf403",
@@ -23,8 +19,6 @@
     }
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "ejs-cli": "^2.2.3",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.8",
     "electron-rebuild": "^3.2.9",
