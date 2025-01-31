@@ -1,0 +1,78 @@
+.tabs {
+  position: absolute;
+  inset: 0;
+  background-image: url("../assets/background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tab {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  justify-content: space-between;
+}
+
+.tabs-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.tab-favicon {
+  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+}
+
+.tab-title {
+  font-size: 12px;
+}
+
+.tab-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.tab span {
+  color: var(--light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.close {
+  cursor: pointer;
+  padding: 0 5px;
+  margin-left: 8px;
+  color: var(--light);
+  opacity: 0.6;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.close:hover {
+  opacity: 1;
+}
+
+.noise-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+  object-fit: cover;
+}
