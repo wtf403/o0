@@ -7,7 +7,9 @@
     "start": "electron src",
     "build": "electron-builder src",
     "rebuild": "electron-rebuild src",
-    "website": "cd website && live-server"
+    "website": "cd website && live-server",
+    "website:build": "postcss website/css/*.css --dir build/css",
+    "website:watch": "postcss website/css/*.css --dir build/css --watch"
   },
   "keywords": [],
   "author": "wtf403",
@@ -24,12 +26,20 @@
     "electron-rebuild": "^3.2.9",
     "live-server": "^1.2.2",
     "node-gyp": "^10.0.1",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "postcss-preset-env": "^9.3.0",
+    "autoprefixer": "^10.4.17"
   },
   "dependencies": {
     "active-win": "^8.1.1",
     "bindings": "^1.5.0",
     "nan": "^2.18.0"
   },
-  "gypfile": true
+  "gypfile": true,
+  "browserslist": [
+    "defaults and fully supports es6-module",
+    "maintained node versions"
+  ]
 }
