@@ -25,7 +25,12 @@ jobs:
         run: npm install
         
       - name: Build website
-        run: npm run website:build
+        run: |
+          mkdir -p build
+          cp -r website/assets build/
+          cp website/index.html build/
+          cp website/js build/js -r
+          npm run website:build
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
