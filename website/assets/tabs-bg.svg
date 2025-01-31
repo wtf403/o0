@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg 
+  id="tabs-bg" 
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 1000 1000"
+  preserveAspectRatio="none"
+  style="width:100%; height:100%; background:#0B0E14;"
+>
+  <defs>
+    <linearGradient id="tab-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color: rgba(255,255,255,0.10)" />
+      <stop offset="100%" style="stop-color: rgba(255,255,255,0.05)" />
+    </linearGradient>
+
+    <!-- Tab Template -->
+    <g id="tab-template">
+      <rect class="tab-bg" width="200" height="32" rx="4" fill="url(#tab-gradient)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+      <image class="tab-favicon" x="8" y="8" width="16" height="16"/>
+      <text class="tab-title" x="32" y="21" font-size="12" fill="rgba(255,255,255,0.8)"></text>
+      <g class="tab-close" transform="translate(180,16)">
+        <circle r="8" fill="transparent"/>
+        <path d="M-3,-3 L3,3 M-3,3 L3,-3" stroke="rgba(255,255,255,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- Row Patterns -->
+    <pattern id="row-pattern-template" x="0" y="0" width="1200" height="100" patternUnits="userSpaceOnUse">
+      <g class="moving-tabs">
+        <animateTransform attributeName="transform" type="translate" dur="30s" repeatCount="indefinite" calcMode="linear"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <!-- Dynamic Rows -->
+  <rect id="dynamic-rows" width="100%" height="100%" fill="transparent"/>
+
+  <style>
+    .tab-bg { transition: fill 0.2s ease; }
+    .tab-bg:hover { fill: rgba(255,255,255,0.12); }
+    .tab-title { font-family: system-ui, sans-serif; }
+    .tab-close { cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+    .tab-close:hover { opacity: 1; }
+    .tab { transition: opacity 0.3s; }
+    .tab.closing { opacity: 0; }
+  </style>
+
+  <script type="text/javascript"><![CDATA[
+    const websites = [
+      {"title":"OpenAI","favicon":"https://www.openai.com/favicon.ico"},
+      {"title":"Hotwire","favicon":"https://www.hotwire.com/favicon.ico"},
+
+    ];
+
+    const config = {
+      tabWidth: 200,
+      rowHeight: 100,
+      horizontalSpacing: 220,
+      minTabsPerRow: 6,
+      animationSpeeds: [25, 30, 35, 40],
+      directions: ['left', 'right']
+    };
+
+    let usedTitles = new Set();
+    let shuffledWebsites = shuffle([...websites]);
+
+    function initialize() {
+      createRows();
+      setupCloseButtons();
+      window.addEventListener('resize', debounce(createRows, 100));
+    }
+
+    function createRows() {
+      const svgHeight = document.documentElement.clientHeight;
+      const rowsNeeded = Math.ceil(svgHeight / config.rowHeight) + 2;
+      
+      const rowsContainer = document.getElementById('dynamic-rows');
+      rowsContainer.innerHTML = '';
+
+      for(let i = 0; i < rowsNeeded; i++) {
+        const patternId = `row-pattern-${i}`;
+        const rowY = i * config.rowHeight;
+        
+        createRowPattern(patternId, i);
+        rowsContainer.innerHTML += 
+          `<rect y="${rowY}" width="100%" height="${config.rowHeight}" fill="url(#${patternId})"/>`;
+      }
+    }
+
+    function createRowPattern(patternId, rowIndex) {
+      const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+      pattern.id = patternId;
+      pattern.setAttribute('width', '1200');
+      pattern.setAttribute('height', '100');
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.classList.add('moving-tabs');
+
+      const tabsNeeded = Math.max(config.minTabsPerRow, 
+        Math.ceil(window.innerWidth / config.horizontalSpacing) + 2);
+
+      for(let j = 0; j < tabsNeeded; j++) {
+        const tab = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+        tab.setAttribute('href', '#tab-template');
+        tab.setAttribute('x', j * config.horizontalSpacing);
+        tab.setAttribute('data-row', rowIndex);
+        assignUniqueWebsite(tab);
+        group.appendChild(tab);
+      }
+
+      const animation = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform');
+      const speed = config.animationSpeeds[rowIndex % config.animationSpeeds.length];
+      const direction = config.directions[rowIndex % config.directions.length];
+      const translateTo = direction === 'left' ? -config.horizontalSpacing * 2 : config.horizontalSpacing * 2;
+
+      animation.setAttribute('attributeName', 'transform');
+      animation.setAttribute('type', 'translate');
+      animation.setAttribute('dur', `${speed}s`);
+      animation.setAttribute('repeatCount', 'indefinite');
+      animation.setAttribute('calcMode', 'linear');
+      animation.setAttribute('from', direction === 'left' ? '0,0' : `${-translateTo},0`);
+      animation.setAttribute('to', direction === 'left' ? `${translateTo},0` : '0,0');
+
+      group.appendChild(animation);
+      pattern.appendChild(group);
+      document.querySelector('defs').appendChild(pattern);
+    }
+
+    function assignUniqueWebsite(tab) {
+      let site;
+      do {
+        if(shuffledWebsites.length === 0) shuffledWebsites = shuffle([...websites]);
+        site = shuffledWebsites.pop();
+      } while(usedTitles.has(site.title));
+      
+      usedTitles.add(site.title);
+      tab.querySelector('.tab-favicon').setAttribute('href', site.favicon);
+      tab.querySelector('.tab-title').textContent = site.title;
+    }
+
+    function handleClose(event) {
+      event.stopPropagation();
+      const tab = event.target.closest('.tab');
+      tab.classList.add('closing');
+      
+      setTimeout(() => {
+        const newTab = tab.cloneNode(true);
+        assignUniqueWebsite(newTab);
+        newTab.querySelector('.tab-close').addEventListener('click', handleClose);
+        tab.parentNode.replaceChild(newTab, tab);
+      }, 300);
+    }
+
+    function setupCloseButtons() {
+      document.querySelectorAll('.tab-close').forEach(btn => {
+        btn.addEventListener('click', handleClose);
+      });
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function debounce(func, timeout = 300) {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), timeout);
+      };
+    }
+
+    document.addEventListener('DOMContentLoaded', initialize);
+  ]]></script>
+</svg>
