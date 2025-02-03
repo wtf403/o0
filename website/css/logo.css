@@ -8,8 +8,8 @@
   align-items: center;
   justify-content: center;
   container-type: size;
-  width: clamp(180px, 10cqw, 360px);
-  height: clamp(180px, 12cqh, 360px);
+  width: clamp(180px, 12cqw, 360px);
+  height: clamp(180px, 15cqh, 360px);
   gap: 2cqh;
   z-index: 100;
 }
