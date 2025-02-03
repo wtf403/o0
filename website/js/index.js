@@ -1,7 +1,6 @@
 const totalImages = 9;
 const lightboxesContainer = document.getElementById("lightboxes");
 
-// Create lightboxes
 for (let i = 1; i <= totalImages; i++) {
   const prev = i === 1 ? totalImages : i - 1;
   const next = i === totalImages ? 1 : i + 1;
@@ -14,20 +13,22 @@ for (let i = 1; i <= totalImages; i++) {
         <ol class="viewport">
           <li tabindex="0" class="slide">
             <div class="snapper">
-              <img src="assets/screenshots/${i}.png" alt="Screenshot ${i}" />
+              <img class="img" src="assets/screenshots/${i}.png" alt="Screenshot ${i}" />
             </div>
           </li>
         </ol>
       </section>
     </a>
-    <a href="#${prev}" class="prev" aria-label="Previous slide">&#10094;</a>
-    <a href="#${next}" class="next" aria-label="Next slide">&#10095;</a>
+    <nav class="navigation">
+      <a href="#${prev}" class="prev" aria-label="Previous slide">←</a>
+      <span class="counter" aria-label="Current slide">${i} / ${totalImages}</span>
+      <a href="#${next}" class="next" aria-label="Next slide">→</a>
+    </nav>
   `;
 
   lightboxesContainer.appendChild(lightbox);
 }
 
-// Keyboard navigation
 document.addEventListener("keydown", (e) => {
   const currentHash = window.location.hash || "#1";
   const currentNum = parseInt(currentHash.slice(1));
@@ -45,4 +46,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   window.location.hash = nextNum;
+});
+
+document.querySelectorAll(".img").forEach((img) => {
+  img.addEventListener("click", (e) => {
+    e.preventDefault();
+  });
 });

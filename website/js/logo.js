@@ -7,8 +7,6 @@ let hasDownloadPermission = false;
 
 async function requestDownloadPermission() {
   try {
-    document.body.style.animation = "loading-cursor 2s forwards";
-
     const result = await navigator.permissions.query({ name: "downloads" });
 
     if (result.state === "granted") {
@@ -60,12 +58,9 @@ document.querySelector(".download").addEventListener("click", async () => {
   }
 
   const topLogo = document.querySelector(".logo-wrapper:nth-child(1)");
-  const middleLogo = document.querySelector(".logo-wrapper:nth-child(2)");
-  const bottomLogo = document.querySelector(".logo-wrapper:nth-child(3)");
+  const bottomLogo = document.querySelector(".logo-wrapper:nth-child(2)");
 
   topLogo.classList.add("fly-away");
-
-  middleLogo.classList.add("move-up");
   bottomLogo.classList.add("move-up");
 
   setTimeout(() => {
@@ -77,13 +72,12 @@ document.querySelector(".download").addEventListener("click", async () => {
       <img class="logo-ghost" src="assets/logo.png" alt="o0 logo" />
     `;
 
-    document.querySelector(".logo-stack").appendChild(newLogo);
+    document.querySelector(".logo-stack").prepend(newLogo);
+    newLogo.offsetHeight;
 
-    middleLogo.classList.remove("move-up");
     bottomLogo.classList.remove("move-up");
 
-    const newTopLogo = document.querySelector(".logo-wrapper:nth-child(1)");
-    newTopLogo.addEventListener("click", () => {
+    newLogo.addEventListener("click", () => {
       oouSound.currentTime = 0;
       oouSound.play();
       hasClickedLogo = true;

@@ -1,78 +1,204 @@
-.tabs {
-  position: absolute;
-  inset: 0;
-  background-image: url("../assets/background.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.tab {
-  display: flex;
-  width: fit-content;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px 8px 0 0;
-  position: relative;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  justify-content: space-between;
-}
-
-.tabs-bg {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.tab-favicon {
-  margin-right: 10px;
-  width: 16px;
-  height: 16px;
-}
-
-.tab-title {
-  font-size: 12px;
-}
-
-.tab-content {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.tab span {
-  color: var(--light);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.close {
-  cursor: pointer;
-  padding: 0 5px;
-  margin-left: 8px;
-  color: var(--light);
-  opacity: 0.6;
-  font-weight: bold;
-  transition: opacity 0.2s;
-}
-
-.close:hover {
-  opacity: 1;
-}
-
 .noise-bg {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  opacity: 0.3;
+  opacity: 0.15;
   pointer-events: none;
   z-index: 0;
   object-fit: cover;
+}
+
+:root {
+  --border-radius: 10px;
+  --transition: background-color 0.2s ease-in-out;
+  /* light */
+  --contrast: #000000;
+  --font: #373737;
+  --tab-bg: #d3e3fd;
+  --tab-hover: #98b9f9;
+  --active: #3c3c3c;
+  --separator-color: #98b9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --contrast: #ffffff;
+    --font: #bbbbbb;
+    --tab-bg: #1f2020;
+    --tab-hover: #063864;
+    --active: #3c3c3c;
+    --separator-color: #383838;
+  }
+}
+
+.tabs-bg {
+  background: var(--tab-bg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+  top: 0;
+}
+
+.marquee {
+  width: 100%;
+  overflow: hidden;
+}
+
+.tabs {
+  width: 150vw;
+  display: flex;
+  gap: 6px;
+  background-color: var(--tab-bg);
+  outline: 1px solid var(--active);
+  outline-offset: -1px;
+  align-items: center;
+}
+
+
+.tab {
+  display: flex;
+  align-items: center;
+  background: var(--tab-bg);
+  padding: 6px 8px;
+  margin-block: 6px;
+  width: 175px;
+  color: var(--font);
+  border-radius: var(--border-radius);
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  -webkit-user-drag: none;
+  height: 16px;
+  animation: loading-cursor .5s forwards infinite;
+
+  &:hover {
+    transition: var(--transition);
+    background-color: var(--tab-hover);
+    &::before,
+    &::after {
+      background-color: var(--tab-bg);
+      z-index: 2;
+    }
+  }
+  
+  & .bottom {
+    width: calc(100% + 24px);
+    bottom: -6px;
+    left: -12px;
+    right: -12px;
+    position: absolute;
+    color: transparent;
+    transition: var(--transition);
+  }
+  
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: var(--transition);
+    height: 16px;
+    width: 2px;
+    background-color: var(--separator-color);
+  }
+  
+  &::before {
+    left: -4px;
+  }
+  
+  &::after {
+    right: -4px;
+  }
+}
+
+.tab:has(.radio:checked) {
+  background-color: var(--active);
+  transition: none;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+
+  & .bottom {
+    color: var(--active);
+  }
+  
+  &::before,
+  &::after {
+    background-color: var(--tab-bg);
+    z-index: 1;
+  }
+}
+
+.radio {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+
+.title {
+  font-family: system-ui;
+  font-size: 12px;
+}
+
+.favicon {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  color: red;
+}
+
+.cross-container {
+  margin-left: auto;
+  position: relative;
+  height: 100%;
+  display: flex;
+  width: 8px;
+  height: 8px;
+  align-items: center;
+  justify-content: end;
+  
+  &:hover {  
+    background-color: rgba(100, 100, 100, 0.5);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    top: 0;
+    left: 0;  
+    transform: translate(calc(-50% + 4px), calc(-50% + 4px));
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    cursor: pointer;
+    pointer-events: initial;
+    animation: none;
+    border-radius: 50%;
+  }
+}
+
+.cross {
+  width: 8px;
+  height: 8px;
+}
+
+.tab.closing {
+  animation: tab-close 0.3s forwards ease;
+}
+
+@keyframes tab-close {
+  from {
+    width: 175px;
+    opacity: 1;
+  }
+  to {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+  }
 }

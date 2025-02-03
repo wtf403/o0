@@ -3,7 +3,6 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  filter: drop-shadow(0 0 10px #0003);
   perspective: 100px;
   z-index: 1000;
   display: flex;
@@ -46,8 +45,8 @@
 }
 
 .slide img {
-  max-width: 90%;
-  max-height: 90vh;
+  --height: 80%;
+  max-height: clamp(360px, var(--height), 1200px);
   object-fit: contain;
   position: relative;
   z-index: 1000;
@@ -67,14 +66,8 @@
   left: 50%;
   transform: translate(-50%, -50%);
   object-fit: contain;
-  z-index: 9000;
+  z-index: 9;
   cursor: auto;
-  user-drag: none;
-  -webkit-user-drag: none;
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
 }
 
 @media (hover: hover) {
@@ -93,59 +86,73 @@
 }
 
 .navigation {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  text-align: center;
-}
-
-.navigation-list,
-.navigation-item {
-  display: inline-block;
-}
-
-.navigation-button {
-  display: inline-block;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: #333;
-  background-clip: content-box;
-  border: 0.25rem solid transparent;
+  --size: 32px;
+  position: fixed;
+  bottom: calc((100% - 80%) / 2);
+  left: 50%;
+  transform: translate(-50%, 100%);
+  color: var(--light);
+  background: var(--gray);
   border-radius: 50%;
-  font-size: 0;
-  transition: transform 0.1s;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  align-content: center;
+  font-size: 1rem;
+  text-decoration: none;
+  font-family: monospace;
+  z-index: 1000;
+  visibility: hidden;
+  font-size: .8rem;
+  --nav-bg: rgba(30, 30, 30, 0.8);
+  --nav-border: 1px solid #373737;
+  --nav-border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+  cursor: pointer;
+  pointer-events: auto;
+
+  gap: .5rem;
 }
 
 .prev,
 .next {
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.1);
-  top: 50%;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  align-items: center;
-  text-align: center;
-  align-content: center;
-  font-size: 2rem;
-  text-decoration: none;
+  width: var(--size);
+  height: var(--size);
+  font-size: 1.2rem;
+  line-height: 1.5;
   color: var(--light);
-  z-index: 1000;
-  display: none;
+  background-color: var(--nav-bg);
+  border: var(--nav-border);
+  border-radius: var(--nav-border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &:hover {
+    color: var(--light);
+    background: var(--nav-bg);
+  }
+  &:active {
+    scale: .9;
+  }
 }
 
-.prev {
-  left: 0;
+
+.counter {
+  height: var(--size);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-radius: var(--nav-border-radius);
+  background-color: var(--nav-bg);
+  border: var(--nav-border);
+  justify-content: center;
+  color: var(--light);
 }
 
-.next {
-  right: 0;
-}
-
-.lightbox:target ~ .prev,
-.lightbox:target ~ .next {
-  display: block;
+.lightbox:target ~ .navigation {
+  visibility: visible;
 }
 
 @keyframes tonext {
@@ -193,7 +200,6 @@
   }
 }
 
-/* Lightbox */
 .lightbox:target .snapper img,
 .lightbox:target .prev,
 .lightbox:target .next {
@@ -210,11 +216,18 @@
   right: 0;
   bottom: 0;
   cursor: zoom-out;
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.lightbox:target {
-  display: block;
+  &:target {
+    display: block;
+  }
+  
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--dark);
+    opacity: 0.8;
+    z-index: 1;
+  }
 }
 
 .lightbox-container {
@@ -227,8 +240,6 @@
   position: absolute;
   bottom: 1rem;
   right: 1rem;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
   padding: 0.5rem 1rem;
   border-radius: 1rem;
   font-size: 0.875rem;
@@ -255,20 +266,24 @@ canvas {
 }
 
 .floating-image {
-  width: 200px;
   position: absolute;
-  will-change: transform;
   z-index: 2;
   pointer-events: auto;
   user-select: none;
   cursor: move;
+  touch-action: none;
+  transition: transform 0.1s linear;
+  
+  &:not(.dragging)::after {
+    cursor: pointer;
+  }
 
   &::after {
     content: "";
     position: absolute;
     inset: 20px;
     z-index: 3;
-    cursor: pointer;
+    cursor: move;
   }
 }
 
@@ -282,16 +297,6 @@ canvas {
   -webkit-user-drag: none;
 }
 
-.floating-image {
-  touch-action: none;
-  transition: transform 0.1s linear;
-}
-
 .physics-image {
   contain: layout paint;
-}
-
-.logo-section {
-  position: relative;
-  z-index: 100;
 }

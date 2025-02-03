@@ -1,13 +1,7 @@
 import Matter from "https://cdn.skypack.dev/matter-js";
 
-const Engine = Matter.Engine,
-  Render = Matter.Render,
-  Runner = Matter.Runner,
-  Bodies = Matter.Bodies,
-  Body = Matter.Body,
-  Composite = Matter.Composite,
-  Events = Matter.Events,
-  Vector = Matter.Vector;
+const { Engine, Render, Runner, Bodies, Body, Composite, Events, Vector } =
+  Matter;
 
 document.addEventListener("DOMContentLoaded", () => {
   const engine = Engine.create({ enableSleeping: false });
@@ -20,58 +14,82 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentBody = null;
   let dragOffset = { x: 0, y: 0 };
   let clickStartTime = 0;
-  let imageSize = 0;
+  const imageSize = Math.max(Math.min(window.innerWidth * 0.18, 280), 180);
 
   const render = Render.create({
     element: bg,
     engine: engine,
     options: {
-      width: bg.getBoundingClientRect().width,
-      height: bg.getBoundingClientRect().height,
+      width: bg.clientWidth,
+      height: bg.clientHeight,
       wireframes: false,
       background: "transparent",
       pixelRatio: window.devicePixelRatio,
     },
   });
 
-  setupWalls(bg, engine.world);
-  setupImages(bg, engine.world, render);
+  render.canvas.style.display = "none";
+
+  let canvasRect = bg.getBoundingClientRect();
+
+  setupWalls();
+  setupImages();
+  setTimeout(() => {
+    setupLogoWalls();
+  }, 1000);
   setupDragHandling();
-  setupEngineEvents(engine, render);
+  setupEngineEvents();
 
   window.addEventListener("resize", debounce(handleResize, 100));
 
   const runner = Runner.create();
   Runner.run(runner, engine);
-  Render.run(render);
 
-  function setupWalls(bg, world) {
-    const rect = bg.getBoundingClientRect();
-    const wallThickness = 60;
+  function setupWalls() {
+    canvasRect = bg.getBoundingClientRect();
+    const wallThickness = 20;
     const walls = [
-      Bodies.rectangle(rect.width / 2, 0, rect.width, wallThickness, {
-        isStatic: true,
-        restitution: 1,
-        friction: 0,
-        render: { visible: false },
-      }),
-      Bodies.rectangle(rect.width / 2, rect.height, rect.width, wallThickness, {
-        isStatic: true,
-        restitution: 1,
-        friction: 0,
-        render: { visible: false },
-      }),
-      Bodies.rectangle(0, rect.height / 2, wallThickness, rect.height, {
-        isStatic: true,
-        restitution: 1,
-        friction: 0,
-        render: { visible: false },
-      }),
       Bodies.rectangle(
-        rect.width,
-        rect.height / 2,
+        canvasRect.width / 2,
+        0,
+        canvasRect.width,
         wallThickness,
-        rect.height,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        canvasRect.width / 2,
+        canvasRect.height,
+        canvasRect.width,
+        wallThickness,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        0,
+        canvasRect.height / 2,
+        wallThickness,
+        canvasRect.height,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        canvasRect.width,
+        canvasRect.height / 2,
+        wallThickness,
+        canvasRect.height,
         {
           isStatic: true,
           restitution: 1,
@@ -80,34 +98,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       ),
     ];
-    Composite.add(world, walls);
+    Composite.add(engine.world, walls);
   }
 
-  function setupImages(bg, world, render) {
-    const rect = bg.getBoundingClientRect();
-    imageSize = window.innerWidth * 0.2;
+  function setupImages() {
+    canvasRect = bg.getBoundingClientRect();
 
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
+    const centerX = canvasRect.width / 2;
+    const centerY = canvasRect.height / 2;
 
-    Array.from({ length: 9 }).forEach((_, i) => {
-      const body = createPhysicsBody(rect, centerX, centerY);
+    for (let i = 0; i < 9; i++) {
+      const body = createPhysicsBody(centerX, centerY);
       const wrapper = createImageElement(i + 1, body.id);
       wrapper.style.transform = `translate3d(${centerX - imageSize / 2}px, ${
         centerY - imageSize / 2
       }px, 0)`;
       images.push({ body, element: wrapper });
-      Composite.add(world, body);
+      Composite.add(engine.world, body);
       bg.appendChild(wrapper);
-    });
+    }
 
-    function createPhysicsBody(rect, centerX, centerY) {
-      const x = centerX;
-      const y = centerY;
+    function createPhysicsBody(centerX, centerY) {
       const angle = Math.random() * Math.PI * 2;
-      const vx = Math.cos(angle) * 0.012;
-      const vy = Math.sin(angle) * 0.015;
-      const body = Bodies.rectangle(x, y, imageSize, imageSize, {
+      const INITIAL_SPEED = 0.08;
+      const vx = Math.cos(angle) * INITIAL_SPEED;
+      const vy = Math.sin(angle) * INITIAL_SPEED;
+      const body = Bodies.rectangle(centerX, centerY, imageSize, imageSize, {
         restitution: 1,
         friction: 0,
         frictionAir: 0,
@@ -124,14 +140,101 @@ document.addEventListener("DOMContentLoaded", () => {
       wrapper.className = "floating-image physics-image";
       wrapper.style.width = `${imageSize}px`;
       wrapper.style.height = `${imageSize}px`;
+      wrapper.style.willChange = "transform";
       wrapper.dataset.bodyId = id;
       wrapper.innerHTML = `
-            <img src="assets/screenshots/${i}.png"
-                 alt="Screenshot ${i}"
-                 draggable="false" />
-          `;
+        <img src="assets/screenshots/${i}.png"
+             alt="Screenshot ${i}"
+             draggable="false" />
+      `;
       return wrapper;
     }
+  }
+
+  function setupLogoWalls() {
+    const logo = document.querySelector(".logo-section");
+    if (!logo) return;
+    const containerRect = bg.getBoundingClientRect();
+    const logoRect = logo.getBoundingClientRect();
+    const offsetX = logoRect.left - containerRect.left;
+    const offsetY = logoRect.top - containerRect.top;
+    const wallThickness = 10;
+    const logoWalls = [
+      Bodies.rectangle(
+        offsetX + logoRect.width / 2,
+        offsetY,
+        logoRect.width,
+        wallThickness,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        offsetX + logoRect.width / 2,
+        offsetY + logoRect.height,
+        logoRect.width,
+        wallThickness,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        offsetX,
+        offsetY + logoRect.height / 2,
+        wallThickness,
+        logoRect.height,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+      Bodies.rectangle(
+        offsetX + logoRect.width,
+        offsetY + logoRect.height / 2,
+        wallThickness,
+        logoRect.height,
+        {
+          isStatic: true,
+          restitution: 1,
+          friction: 0,
+          render: { visible: false },
+        }
+      ),
+    ];
+    Composite.add(engine.world, logoWalls);
+
+    const centerX = offsetX + logoRect.width / 2;
+    const centerY = offsetY + logoRect.height / 2;
+    images.forEach(({ body, element }) => {
+      if (
+        body.position.x > offsetX &&
+        body.position.x < offsetX + logoRect.width &&
+        body.position.y > offsetY &&
+        body.position.y < offsetY + logoRect.height
+      ) {
+        let dx = body.position.x - centerX;
+        let dy = body.position.y - centerY;
+
+        if (dx === 0 && dy === 0) {
+          dx = Math.random() - 0.5;
+          dy = Math.random() - 0.5;
+        }
+        const angle = Math.atan2(dy, dx);
+        const THROW_SPEED = 5;
+        Body.setVelocity(body, {
+          x: Math.cos(angle) * THROW_SPEED,
+          y: Math.sin(angle) * THROW_SPEED,
+        });
+      }
+    });
   }
 
   function setupDragHandling() {
@@ -154,11 +257,11 @@ document.addEventListener("DOMContentLoaded", () => {
     )?.body;
     if (currentBody) {
       target.classList.add("dragging");
+      document.body.classList.add("dragging");
       Body.setVelocity(currentBody, { x: 0, y: 0 });
-      const rect = render.canvas.getBoundingClientRect();
       const scale = render.options.pixelRatio;
-      const mouseX = (evt.clientX - rect.left) * scale;
-      const mouseY = (evt.clientY - rect.top) * scale;
+      const mouseX = (evt.clientX - canvasRect.left) * scale;
+      const mouseY = (evt.clientY - canvasRect.top) * scale;
       dragOffset.x = mouseX - currentBody.position.x;
       dragOffset.y = mouseY - currentBody.position.y;
     }
@@ -168,36 +271,38 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isDragging || !currentBody) return;
     e.preventDefault();
     const evt = e.touches?.[0] || e;
-    const rect = render.canvas.getBoundingClientRect();
     const scale = render.options.pixelRatio;
-    const mouseX = (evt.clientX - rect.left) * scale;
-    const mouseY = (evt.clientY - rect.top) * scale;
+    const mouseX = (evt.clientX - canvasRect.left) * scale;
+    const mouseY = (evt.clientY - canvasRect.top) * scale;
 
-    // Get current position
-    const currentX = currentBody.position.x;
-    const currentY = currentBody.position.y;
-
-    // Calculate target position
     const targetX = Math.max(
       imageSize / 2,
-      Math.min(rect.width - imageSize / 2, mouseX - dragOffset.x)
+      Math.min(canvasRect.width - imageSize / 2, mouseX - dragOffset.x)
     );
     const targetY = Math.max(
       imageSize / 2,
-      Math.min(rect.height - imageSize / 2, mouseY - dragOffset.y)
+      Math.min(canvasRect.height - imageSize / 2, mouseY - dragOffset.y)
     );
 
-    // Interpolate position for smooth movement (0.1 = 10% movement per frame)
-    const newX = currentX + (targetX - currentX) * 0.05;
-    const newY = currentY + (targetY - currentY) * 0.05;
+    const newX =
+      currentBody.position.x + (targetX - currentBody.position.x) * 0.1;
+    const newY =
+      currentBody.position.y + (targetY - currentBody.position.y) * 0.1;
 
     Body.setPosition(currentBody, { x: newX, y: newY });
   }
 
   function endDrag(e) {
+    if (e.type === "mouseup") {
+      document.querySelectorAll(".floating-image.dragging").forEach((el) => {
+        el.classList.remove("dragging");
+      });
+      document.body.classList.remove("dragging");
+    }
+
     if (!currentBody) return;
+
     isDragging = false;
-    document.querySelector(".dragging")?.classList.remove("dragging");
     const isClick = Date.now() - clickStartTime < 200;
     const target = e.target.closest(".floating-image");
     if (isClick && target) {
@@ -216,36 +321,41 @@ document.addEventListener("DOMContentLoaded", () => {
     currentBody = null;
   }
 
-  function setupEngineEvents(engine, render) {
-    const BASE_SPEED = 0.3; // Base speed for movement
-    const SPEED_VARIATION = 0.2; // Amount of random speed variation
-    const DIRECTION_CHANGE_PROB = 0.02; // Probability of changing direction each frame
-    const REPULSION_STRENGTH = 0.015; // Reduced from 0.02
+  function setupEngineEvents() {
+    const BASE_SPEED = 0.3;
+    const SPEED_VARIATION = 0.2;
+    const DIRECTION_CHANGE_PROB = 0.02;
+    const REPULSION_STRENGTH = 0.015;
     const REPULSION_DISTANCE = 250;
+    const REPULSION_DISTANCE_SQ = REPULSION_DISTANCE * REPULSION_DISTANCE;
 
     Events.on(engine, "afterUpdate", () => {
-      const rect = render.canvas.getBoundingClientRect();
       images.forEach(({ body, element }) => {
-        Body.setAngle(body, 0);
-
         if (!isDragging || body !== currentBody) {
-          // Add random variations to velocity
           if (Math.random() < DIRECTION_CHANGE_PROB) {
             const angle = Math.random() * Math.PI * 2;
             const speed = BASE_SPEED + (Math.random() - 0.5) * SPEED_VARIATION;
-            const vx = Math.cos(angle) * speed;
-            const vy = Math.sin(angle) * speed;
-            Body.setVelocity(body, { x: vx, y: vy });
+            Body.setVelocity(body, {
+              x: Math.cos(angle) * speed,
+              y: Math.sin(angle) * speed,
+            });
           }
 
-          // Ensure minimum speed
-          const velocity = body.velocity;
-          const speed = Vector.magnitude(velocity);
+          const speed = Vector.magnitude(body.velocity);
           if (speed < BASE_SPEED * 0.8) {
-            const angle = Math.atan2(velocity.y, velocity.x);
+            const angle = Math.atan2(body.velocity.y, body.velocity.x);
             Body.setVelocity(body, {
               x: Math.cos(angle) * BASE_SPEED,
               y: Math.sin(angle) * BASE_SPEED,
+            });
+          }
+
+          const MAX_SPEED = 3;
+          if (speed > MAX_SPEED) {
+            const factor = MAX_SPEED / speed;
+            Body.setVelocity(body, {
+              x: body.velocity.x * factor,
+              y: body.velocity.y * factor,
             });
           }
         }
@@ -255,22 +365,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }px, ${body.position.y - imageSize / 2}px, 0)`;
       });
 
-      // Apply repulsion forces
       for (let i = 0; i < images.length; i++) {
         for (let j = i + 1; j < images.length; j++) {
           const bodyA = images[i].body;
           const bodyB = images[j].body;
           if ((bodyA === currentBody || bodyB === currentBody) && isDragging)
             continue;
-          const vec = Vector.sub(bodyB.position, bodyA.position);
-          const distance = Vector.magnitude(vec);
-          if (distance < REPULSION_DISTANCE && distance > 0) {
-            const force = Vector.mult(
-              Vector.normalise(vec),
-              REPULSION_STRENGTH / (distance * distance)
-            );
-            Body.applyForce(bodyA, bodyA.position, Vector.neg(force));
-            Body.applyForce(bodyB, bodyB.position, force);
+
+          const dx = bodyB.position.x - bodyA.position.x;
+          const dy = bodyB.position.y - bodyA.position.y;
+          const distanceSq = dx * dx + dy * dy;
+          if (distanceSq < REPULSION_DISTANCE_SQ && distanceSq > 0) {
+            const distance = Math.sqrt(distanceSq);
+            const forceMagnitude = REPULSION_STRENGTH / (distanceSq * distance);
+            const force = { x: dx * forceMagnitude, y: dy * forceMagnitude };
+            Body.applyForce(bodyA, bodyA.position, {
+              x: -force.x,
+              y: -force.y,
+            });
+            Body.applyForce(bodyB, bodyB.position, { x: force.x, y: force.y });
           }
         }
       }
@@ -278,25 +391,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleResize() {
-    const rect = bg.getBoundingClientRect();
-    render.canvas.width = rect.width;
-    render.canvas.height = rect.height;
-    imageSize = window.innerWidth * 0.18;
-    const bodies = Composite.allBodies(engine.world);
-    bodies.forEach((body) => {
+    canvasRect = bg.getBoundingClientRect();
+
+    render.canvas.width = canvasRect.width;
+    render.canvas.height = canvasRect.height;
+
+    Composite.allBodies(engine.world).forEach((body) => {
       if (body.isStatic) {
         Composite.remove(engine.world, body);
       }
     });
-    setupWalls(bg, engine.world);
+    setupWalls();
     images.forEach(({ body, element }) => {
       const x = Math.max(
         imageSize / 2,
-        Math.min(rect.width - imageSize / 2, body.position.x)
+        Math.min(canvasRect.width - imageSize / 2, body.position.x)
       );
       const y = Math.max(
         imageSize / 2,
-        Math.min(rect.height - imageSize / 2, body.position.y)
+        Math.min(canvasRect.height - imageSize / 2, body.position.y)
       );
       Body.setPosition(body, { x, y });
       element.style.width = `${imageSize}px`;
@@ -308,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let timeout;
     return (...args) => {
       clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
+      timeout = setTimeout(() => func.apply(null, args), wait);
     };
   }
 });
