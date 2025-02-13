@@ -2,11 +2,11 @@
   "name": "browser-launcher",
   "version": "1.0.0",
   "description": "MacOS browser launcher with floating URL bar",
-  "main": "main.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "electron src",
-    "build": "electron-builder src",
-    "rebuild": "electron-rebuild src",
+    "start": "electron .",
+    "build": "electron-builder .",
+    "rebuild": "electron-rebuild .",
     "website": "cd website && live-server",
     "website:build": "postcss website/css/*.css --dir build/css",
     "website:watch": "postcss website/css/*.css --dir build/css --watch"
@@ -21,6 +21,7 @@
     }
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.17",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.8",
     "electron-rebuild": "^3.2.9",
@@ -29,13 +30,13 @@
     "nodemon": "^2.0.22",
     "postcss": "^8.4.35",
     "postcss-cli": "^11.0.0",
-    "postcss-preset-env": "^9.3.0",
-    "autoprefixer": "^10.4.17"
+    "postcss-preset-env": "^9.3.0"
   },
   "dependencies": {
     "active-win": "^8.1.1",
     "bindings": "^1.5.0",
-    "nan": "^2.18.0"
+    "nan": "^2.18.0",
+    "node-addon-api": "^8.3.0"
   },
   "gypfile": true,
   "browserslist": [
