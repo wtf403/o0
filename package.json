@@ -2,45 +2,53 @@
   "name": "browser-launcher",
   "version": "1.0.0",
   "description": "MacOS browser launcher with floating URL bar",
-  "main": "src/index.js",
-  "scripts": {
+  "type": "module",
+  "main": "dist-electron/main.js",
+"scripts": {
     "start": "electron .",
-    "build": "electron-builder .",
     "rebuild": "electron-rebuild .",
     "website": "cd website && live-server",
     "website:build": "postcss website/css/*.css --dir build/css",
-    "website:watch": "postcss website/css/*.css --dir build/css --watch"
+    "website:watch": "postcss website/css/*.css --dir build/css --watch",
+    "dev": "vite",
+    "build": "tsc && vite build && electron-builder",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "wtf403",
   "license": "MIT",
   "build": {
-    "appId": "com.browser.launcher",
+    "appId": "com.wtf403.o0",
     "mac": {
       "category": "public.app-category.utilities"
     }
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.17",
+    "@types/node": "^20.11.24",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "@vitejs/plugin-react": "^4.2.1",
     "electron": "^34.0.0",
     "electron-builder": "^25.1.8",
     "electron-rebuild": "^3.2.9",
-    "live-server": "^1.2.2",
+    "eslint": "^8.57.0",
     "node-gyp": "^10.0.1",
-    "nodemon": "^2.0.22",
-    "postcss": "^8.4.35",
-    "postcss-cli": "^11.0.0",
-    "postcss-preset-env": "^9.3.0"
+    "prettier": "^3.3.3",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.6",
+    "vite-plugin-electron": "^0.28.6",
+    "vite-plugin-electron-renderer": "^0.14.5"
   },
   "dependencies": {
     "active-win": "^8.1.1",
     "bindings": "^1.5.0",
     "nan": "^2.18.0",
-    "node-addon-api": "^8.3.0"
+    "node-addon-api": "^8.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
-  "gypfile": true,
-  "browserslist": [
-    "defaults and fully supports es6-module",
-    "maintained node versions"
-  ]
+  "gypfile": true
 }
